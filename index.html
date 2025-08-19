@@ -51,7 +51,8 @@
             display: flex;
             justify-content: center;
             margin: 30px 0;
-            height: 450px; /* 250px ad height + 200px free space */
+            height: 450px;
+            /* 250px ad height + 200px free space */
             position: relative;
         }
 
@@ -78,15 +79,6 @@
             width: 300px;
             height: 250px;
             border: none;
-        }
-
-        /* Observer target for when to unstick the ad */
-        #ad-wrapper::after {
-            content: '';
-            position: absolute;
-            bottom: -200px; /* 200px below the wrapper */
-            width: 1px;
-            height: 1px;
         }
     </style>
 
@@ -157,43 +149,40 @@
                 }
             });
 
-        function setupStickyAdBehavior() {
-            const adContainer = document.getElementById('ad-container');
-            const adWrapper = document.getElementById('ad-wrapper');
-            
-            function updateAd() {
-                const wrapperRect = adWrapper.getBoundingClientRect();
-                const adHeight = adContainer.offsetHeight;
-                
-                if (wrapperRect.bottom <= 0 || wrapperRect.top >= window.innerHeight) {
-                    adContainer.classList.remove('sticky', 'bottom');
-                    return;
-                }
-                
-                if (wrapperRect.top <= 20 && wrapperRect.bottom >= adHeight + 20) {
-                    adContainer.classList.add('sticky');
-                    adContainer.classList.remove('bottom');
-                } else if (wrapperRect.bottom < adHeight + 20) {
-                    adContainer.classList.remove('sticky');
-                    adContainer.classList.add('bottom');
-                } else {
-                    adContainer.classList.remove('sticky', 'bottom');
-                }
-            }
-            
-            window.addEventListener('scroll', updateAd);
-            window.addEventListener('resize', updateAd);
-            updateAd();
-        }
-        });
+            function setupStickyAdBehavior() {
+                const adContainer = document.getElementById('ad-container');
+                const adWrapper = document.getElementById('ad-wrapper');
 
-        
+                function updateAd() {
+                    const wrapperRect = adWrapper.getBoundingClientRect();
+                    const adHeight = adContainer.offsetHeight;
+                    const offsetTop = 20; // sticky top offset
+
+                    if (wrapperRect.bottom <= 0 || wrapperRect.top >= window.innerHeight) {
+                        adContainer.classList.remove('sticky', 'bottom');
+                        return;
+                    }
+                    if (wrapperRect.top <= offsetTop && (window.innerHeight - offsetTop) >= adHeight && wrapperRect.bottom >= adHeight + offsetTop) {
+                        adContainer.classList.add('sticky');
+                        adContainer.classList.remove('bottom');
+                    } else if (wrapperRect.bottom < adHeight + offsetTop) {
+                        adContainer.classList.remove('sticky');
+                        adContainer.classList.add('bottom');
+                    } else {
+                        adContainer.classList.remove('sticky', 'bottom');
+                    }
+                }
+
+                window.addEventListener('scroll', updateAd);
+                window.addEventListener('resize', updateAd);
+                updateAd();
+            }
+        });
     </script>
 </head>
 
 <body>
     <header>LuponMedia</header>
-
     <div class="container">
         <h1>Breaking News: Lorem Ipsum Dominates Headlines</h1>
         <p class="author">By LuponMedia | July 21, 2025</p>
