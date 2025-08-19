@@ -1,182 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>LuponMedia - Breaking News</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      padding: 0;
-      margin: 0;
-      background-color: #f8f9fa;
-    }
+    <meta charset="UTF-8" />
+    <title>LuponMedia - Breaking News</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            background-color: #f8f9fa;
+        }
 
-    header {
-      background-color: #ffcc00;
-      color: #000;
-      padding: 15px 20px;
-      font-size: 24px;
-      font-weight: bold;
-    }
+        header {
+            background-color: #ffcc00;
+            color: #000;
+            padding: 15px 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
 
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-    }
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+        }
 
-    .hero-image {
-      width: 100%;
-      height: auto;
-      margin-bottom: 20px;
-      border-radius: 4px;
-    }
+        .hero-image {
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
 
-    .author {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
+        .author {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
 
-    h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-    }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
 
-    #ad-wrapper {
-      display: flex;
-      justify-content: center;
-      margin: 30px 0;
-    }
+        #ad-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            height: 450px; /* 250px ad height + 200px free space */
+            position: relative;
+        }
 
-    #ad-container {
-      width: 300px;
-      height: 250px;
-    }
+        #ad-container {
+            width: 300px;
+            height: 250px;
+        }
 
-    iframe#ad-iframe {
-      width: 300px;
-      height: 250px;
-      border: none;
-    }
-  </style>
+        #ad-container.sticky {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
-  <script>
-    var pbjs = {
-      adUnits: [],
-      bidResponses: {},
-      auctionsDone: false,
-      requestBids: function (config) {
-        console.log("[PBJS] Starting bid request for:", config.adUnits);
+        #ad-container.bottom {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
-        setTimeout(function () {
-          pbjs.bidResponses[config.adUnits[0].code] = [
-            {
-              bidder: "mockBidderA",
-              cpm: 1.2,
-              ad: "<div style='background: blue; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;'>AD</div>",
-              width: 300,
-              height: 250,
-              adId: "ad123"
+        iframe#ad-iframe {
+            width: 300px;
+            height: 250px;
+            border: none;
+        }
+
+        /* Observer target for when to unstick the ad */
+        #ad-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: -200px; /* 200px below the wrapper */
+            width: 1px;
+            height: 1px;
+        }
+    </style>
+
+    <script>
+        var pbjs = {
+            adUnits: [],
+            bidResponses: {},
+            auctionsDone: false,
+            requestBids: function (config) {
+                console.log("[PBJS] Starting bid request for:", config.adUnits);
+
+                setTimeout(function () {
+                    pbjs.bidResponses[config.adUnits[0].code] = [
+                        {
+                            bidder: "mockBidderA",
+                            cpm: 1.2,
+                            ad: "<div style='background: blue; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;'>AD</div>",
+                            width: 300,
+                            height: 250,
+                            adId: "ad123"
+                        }
+                    ];
+                    pbjs.auctionsDone = true;
+                    console.log("[PBJS] Bids received:", pbjs.bidResponses);
+
+                    if (typeof config.bidsBackHandler === "function") {
+                        config.bidsBackHandler();
+                    }
+                }, 200);
+            },
+            renderAd: function (iframe, adId) {
+                var adUnitCode = 'div-gpt-ad-1';
+                var ad = pbjs.bidResponses[adUnitCode]?.[0];
+                if (ad) {
+                    var doc = iframe.contentWindow.document;
+                    doc.open();
+                    doc.write(ad.ad);
+                    doc.close();
+                }
             }
-          ];
-          pbjs.auctionsDone = true;
-          console.log("[PBJS] Bids received:", pbjs.bidResponses);
+        };
 
-          if (typeof config.bidsBackHandler === "function") {
-            config.bidsBackHandler();
-          }
-        }, 200);
-      },
-      renderAd: function (iframe, adId) {
-        var adUnitCode = 'div-gpt-ad-1';
-        var ad = pbjs.bidResponses[adUnitCode]?.[0];
-        if (ad) {
-          var doc = iframe.contentWindow.document;
-          doc.open();
-          doc.write(ad.ad);
-          doc.close();
-        }
-      }
-    };
+        pbjs.adUnits = [{
+            code: 'div-gpt-ad-1',
+            mediaTypes: {
+                banner: {
+                    sizes: [[300, 250]]
+                }
+            },
+            bids: [
+                { bidder: 'mockBidderA', params: {} },
+                { bidder: 'mockBidderB', params: {} }
+            ]
+        }];
 
-    pbjs.adUnits = [{
-      code: 'div-gpt-ad-1',
-      mediaTypes: {
-        banner: {
-          sizes: [[300, 250]]
-        }
-      },
-      bids: [
-        { bidder: 'mockBidderA', params: {} },
-        { bidder: 'mockBidderB', params: {} }
-      ]
-    }];
+        window.addEventListener('DOMContentLoaded', function () {
+            pbjs.requestBids({
+                adUnits: pbjs.adUnits,
+                bidsBackHandler: function () {
+                    console.log("[PBJS] Waiting 2 seconds before rendering ad...");
+                    setTimeout(function () {
+                        var iframe = document.createElement('iframe');
+                        iframe.id = 'ad-iframe';
+                        document.getElementById('ad-container').appendChild(iframe);
+                        pbjs.renderAd(iframe, 'ad123');
+                        setupStickyAdBehavior();
+                    }, 2000);
+                }
+            });
 
-    window.addEventListener('DOMContentLoaded', function () {
-      pbjs.requestBids({
-        adUnits: pbjs.adUnits,
-        bidsBackHandler: function () {
-          console.log("[PBJS] Waiting 2 seconds before rendering ad...");
-          setTimeout(function () {
-            var iframe = document.createElement('iframe');
-            iframe.id = 'ad-iframe';
-            document.getElementById('ad-container').appendChild(iframe);
-            pbjs.renderAd(iframe, 'ad123');
-          }, 2000);
+        function setupStickyAdBehavior() {
+            const adContainer = document.getElementById('ad-container');
+            const adWrapper = document.getElementById('ad-wrapper');
+            
+            function updateAd() {
+                const wrapperRect = adWrapper.getBoundingClientRect();
+                const adHeight = adContainer.offsetHeight;
+                
+                if (wrapperRect.bottom <= 0 || wrapperRect.top >= window.innerHeight) {
+                    adContainer.classList.remove('sticky', 'bottom');
+                    return;
+                }
+                
+                if (wrapperRect.top <= 20 && wrapperRect.bottom >= adHeight + 20) {
+                    adContainer.classList.add('sticky');
+                    adContainer.classList.remove('bottom');
+                } else if (wrapperRect.bottom < adHeight + 20) {
+                    adContainer.classList.remove('sticky');
+                    adContainer.classList.add('bottom');
+                } else {
+                    adContainer.classList.remove('sticky', 'bottom');
+                }
+            }
+            
+            window.addEventListener('scroll', updateAd);
+            window.addEventListener('resize', updateAd);
+            updateAd();
         }
-      });
-    });
-  </script>
+        });
+
+        
+    </script>
 </head>
 
 <body>
-  <header>LuponMedia</header>
+    <header>LuponMedia</header>
 
-  <div class="container">
-    <h1>Breaking News: Lorem Ipsum Dominates Headlines</h1>
-    <p class="author">By LuponMedia | July 21, 2025</p>
+    <div class="container">
+        <h1>Breaking News: Lorem Ipsum Dominates Headlines</h1>
+        <p class="author">By LuponMedia | July 21, 2025</p>
 
-    <img
-      class="hero-image"
-      src="https://picsum.photos/700/300"
-      alt="News image"
-    />
+        <img class="hero-image" src="https://picsum.photos/700/300" alt="News image" />
 
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nec justo arcu. Quisque sagittis, nisi vel facilisis viverra, sem arcu lobortis mauris, nec cursus lacus elit in ligula. Integer nec fermentum mauris. Curabitur scelerisque risus nec porta lobortis.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nec justo arcu. Quisque sagittis, nisi vel
+            facilisis viverra, sem arcu lobortis mauris, nec cursus lacus elit in ligula. Integer nec fermentum mauris.
+            Curabitur scelerisque risus nec porta lobortis.</p>
 
-    <p>Donec consequat purus sed sapien vulputate, sit amet finibus ex sagittis. Suspendisse potenti. Pellentesque lacinia vestibulum tellus, id fringilla urna varius ac. Phasellus eget velit facilisis, posuere eros at, feugiat sapien. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
+        <p>Donec consequat purus sed sapien vulputate, sit amet finibus ex sagittis. Suspendisse potenti. Pellentesque
+            lacinia vestibulum tellus, id fringilla urna varius ac. Phasellus eget velit facilisis, posuere eros at,
+            feugiat sapien. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
 
-    <p>Morbi accumsan accumsan diam, nec hendrerit ligula. Nulla in erat lorem. Aenean sodales ipsum in tristique suscipit. In euismod eu erat sed dignissim. Suspendisse sit amet leo lorem. Duis porta imperdiet augue, vel lacinia tellus sagittis id.</p>
+        <p>Morbi accumsan accumsan diam, nec hendrerit ligula. Nulla in erat lorem. Aenean sodales ipsum in tristique
+            suscipit. In euismod eu erat sed dignissim. Suspendisse sit amet leo lorem. Duis porta imperdiet augue, vel
+            lacinia tellus sagittis id.</p>
 
-    <p>Integer sed mattis nulla, sit amet sollicitudin libero. Sed at ornare nunc. Curabitur vehicula diam ac lacus eleifend accumsan. Aenean sit amet bibendum justo, vel feugiat nunc. Maecenas eget congue odio, in scelerisque urna.</p>
+        <p>Integer sed mattis nulla, sit amet sollicitudin libero. Sed at ornare nunc. Curabitur vehicula diam ac lacus
+            eleifend accumsan. Aenean sit amet bibendum justo, vel feugiat nunc. Maecenas eget congue odio, in
+            scelerisque urna.</p>
 
-    <!-- Centered Ad Slot -->
-    <div id="ad-wrapper">
-      <div id="ad-container"></div>
+        <!-- Centered Ad Slot -->
+        <div id="ad-wrapper">
+            <div id="ad-container"></div>
+        </div>
+
+        <p>Sed vulputate fermentum diam, vitae fermentum est pretium at. Proin viverra gravida dui nec viverra. Fusce
+            rhoncus arcu vitae purus sodales, ut gravida velit hendrerit. Ut semper, purus at scelerisque pharetra, enim
+            nisi porta libero, a tincidunt justo magna eget justo.</p>
+
+        <p>Vestibulum rhoncus rutrum sapien, nec rhoncus nisi volutpat vel. Vivamus nec nulla laoreet, porta neque nec,
+            imperdiet risus. Integer ut nisl vitae nisl commodo bibendum. Cras at metus sit amet justo finibus placerat.
+        </p>
+
+        <p>Nam id viverra elit, et efficitur massa. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+            posuere cubilia curae; Morbi malesuada arcu vel nisl fermentum porttitor. Integer feugiat orci nec sem
+            convallis, nec hendrerit velit convallis.</p>
+
+        <p>Aliquam erat volutpat. Praesent condimentum sollicitudin nisi, sit amet condimentum metus. Donec feugiat,
+            nulla nec elementum sodales, metus ligula egestas massa, a facilisis libero leo nec sem. Integer efficitur
+            purus nec lectus porttitor, et tincidunt odio mattis.</p>
+
+        <!-- 5 more paragraphs below -->
+        <p>Curabitur tristique sapien non diam gravida, eget tempor nulla tempor. Maecenas ultricies ante vitae nisl
+            feugiat laoreet. Integer bibendum elit eget sem volutpat, non posuere purus facilisis.</p>
+
+        <p>Ut fermentum porttitor magna, vitae tincidunt sem fermentum id. Sed posuere ligula nec metus lacinia, id
+            efficitur leo placerat. Duis sagittis urna ut tortor tincidunt, nec volutpat sem dapibus.</p>
+
+        <p>Morbi id ligula dignissim, porttitor tellus nec, dignissim felis. Sed commodo, turpis nec efficitur
+            fringilla, arcu ante euismod purus, eget tincidunt justo turpis et nibh.</p>
+
+        <p>In eleifend, ipsum et lobortis dignissim, sem sem fringilla dolor, non volutpat magna felis non sem. Nullam
+            nec odio sed nisi vehicula tempor. Pellentesque vel dignissim lorem.</p>
+
+        <p>Proin placerat feugiat lacus, vitae ultricies risus mattis vel. Donec ultricies nisi eu sapien rhoncus, vitae
+            posuere turpis tempor. Cras non fermentum justo.</p>
     </div>
-
-    <p>Sed vulputate fermentum diam, vitae fermentum est pretium at. Proin viverra gravida dui nec viverra. Fusce rhoncus arcu vitae purus sodales, ut gravida velit hendrerit. Ut semper, purus at scelerisque pharetra, enim nisi porta libero, a tincidunt justo magna eget justo.</p>
-
-    <p>Vestibulum rhoncus rutrum sapien, nec rhoncus nisi volutpat vel. Vivamus nec nulla laoreet, porta neque nec, imperdiet risus. Integer ut nisl vitae nisl commodo bibendum. Cras at metus sit amet justo finibus placerat.</p>
-
-    <p>Nam id viverra elit, et efficitur massa. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Morbi malesuada arcu vel nisl fermentum porttitor. Integer feugiat orci nec sem convallis, nec hendrerit velit convallis.</p>
-
-    <p>Aliquam erat volutpat. Praesent condimentum sollicitudin nisi, sit amet condimentum metus. Donec feugiat, nulla nec elementum sodales, metus ligula egestas massa, a facilisis libero leo nec sem. Integer efficitur purus nec lectus porttitor, et tincidunt odio mattis.</p>
-
-    <!-- 5 more paragraphs below -->
-    <p>Curabitur tristique sapien non diam gravida, eget tempor nulla tempor. Maecenas ultricies ante vitae nisl feugiat laoreet. Integer bibendum elit eget sem volutpat, non posuere purus facilisis.</p>
-
-    <p>Ut fermentum porttitor magna, vitae tincidunt sem fermentum id. Sed posuere ligula nec metus lacinia, id efficitur leo placerat. Duis sagittis urna ut tortor tincidunt, nec volutpat sem dapibus.</p>
-
-    <p>Morbi id ligula dignissim, porttitor tellus nec, dignissim felis. Sed commodo, turpis nec efficitur fringilla, arcu ante euismod purus, eget tincidunt justo turpis et nibh.</p>
-
-    <p>In eleifend, ipsum et lobortis dignissim, sem sem fringilla dolor, non volutpat magna felis non sem. Nullam nec odio sed nisi vehicula tempor. Pellentesque vel dignissim lorem.</p>
-
-    <p>Proin placerat feugiat lacus, vitae ultricies risus mattis vel. Donec ultricies nisi eu sapien rhoncus, vitae posuere turpis tempor. Cras non fermentum justo.</p>
-  </div>
 </body>
+
 </html>
