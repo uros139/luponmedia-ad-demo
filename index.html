@@ -156,7 +156,7 @@
                 function updateAd() {
                     const wrapperRect = adWrapper.getBoundingClientRect();
                     const adHeight = adContainer.offsetHeight;
-                    const offsetTop = 20; // sticky top offset
+                    const offsetTop = 20;
 
                     if (wrapperRect.bottom <= 0 || wrapperRect.top >= window.innerHeight) {
                         adContainer.classList.remove('sticky', 'bottom');
