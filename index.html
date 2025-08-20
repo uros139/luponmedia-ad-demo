@@ -47,30 +47,13 @@
             margin-bottom: 10px;
         }
 
-        p+#ad-wrapper {
-            margin-top: 0;
-        }
-
-        #ad-wrapper {
-            margin-top: 0;
-        }
-
-        #ad-wrapper {
-            margin-bottom: 0;
-        }
-
-        #ad-wrapper,
-        #ad-wrapper+p {
-            margin-top: 0;
-        }
-
-        p+#ad-wrapper {
-            margin-bottom: 0;
-        }
-
         p {
             margin-top: 0;
-            margin-bottom: 1em;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 2000;
+            background: white;
+            padding: 0.5em 0;
         }
 
         p:has(+ #ad-wrapper) {
@@ -96,6 +79,7 @@
             top: 0px;
             left: 50%;
             transform: translateX(-50%);
+            z-index: 1000;
         }
 
         #ad-container.bottom {
@@ -190,16 +174,20 @@
 
                     if (wrapperRect.bottom <= 0 || wrapperRect.top >= window.innerHeight) {
                         adContainer.classList.remove('sticky', 'bottom');
+                        adWrapper.style.marginBottom = '';
+                        adWrapper.style.paddingBottom = '';
                         return;
                     }
-                    if (wrapperRect.top <= offsetTop && (window.innerHeight - offsetTop) >= adHeight && wrapperRect.bottom >= adHeight + offsetTop) {
+
+                    if (wrapperRect.top <= offsetTop) {
                         adContainer.classList.add('sticky');
                         adContainer.classList.remove('bottom');
-                    } else if (wrapperRect.bottom < adHeight + offsetTop) {
-                        adContainer.classList.remove('sticky');
-                        adContainer.classList.add('bottom');
+                        adWrapper.style.marginBottom = `-${adHeight}px`;
+                        adWrapper.style.paddingBottom = `${adHeight}px`;
                     } else {
                         adContainer.classList.remove('sticky', 'bottom');
+                        adWrapper.style.marginBottom = '';
+                        adWrapper.style.paddingBottom = '';
                     }
                 }
 
