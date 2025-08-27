@@ -97,7 +97,14 @@
         if (ad) {
           var doc = iframe.contentWindow.document;
           doc.open();
-          doc.write(ad.ad);
+          doc.write(`
+            <style>
+              html, body { 
+                overflow: hidden !important;
+              }
+            </style>
+            ${ad.ad}
+          `);
           doc.close();
         }
       }
@@ -126,9 +133,95 @@
             iframe.id = 'ad-iframe';
             document.getElementById('ad-container').appendChild(iframe);
             pbjs.renderAd(iframe, 'ad123');
+            setupStickyAdBehavior();
           }, 2000);
         }
       });
+
+      function setupStickyAdBehavior() {
+        const adContainer = document.getElementById('ad-container');
+        const adWrapper = document.getElementById('ad-wrapper');
+        const adIframe = document.getElementById('ad-iframe');
+        const originalHeight = adIframe.offsetHeight; // Get actual iframe height
+        
+        // Add styles dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+          #ad-wrapper {
+            height: 450px !important;
+            position: relative !important;
+          }
+          
+          #ad-container.sticky {
+            position: fixed !important;
+            top: 0px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 1000 !important;
+          }
+          
+          #ad-iframe {
+            transition: height 0.05s ease-out;
+            overflow: hidden !important;
+          }
+          
+          #ad-container.hidden {
+            display: none !important;
+          }
+        `;
+        document.head.appendChild(style);
+
+        function updateAd() {
+          const wrapperRect = adWrapper.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          
+          // If wrapper is completely out of view (above or below), hide ad
+          if (wrapperRect.bottom <= 0 || wrapperRect.top >= viewportHeight) {
+            adContainer.classList.remove('sticky');
+            adContainer.classList.add('hidden');
+            return;
+          }
+          
+          // If wrapper is fully visible and ad hasn't reached the top, show normally
+          if (wrapperRect.top > 0) {
+            adContainer.classList.remove('sticky', 'hidden');
+            adIframe.style.height = originalHeight + 'px';
+            return;
+          }
+          
+          // Wrapper is partially visible (top is at or above viewport top)
+          adContainer.classList.remove('hidden');
+          adContainer.classList.add('sticky');
+          
+          // Calculate how much of the wrapper is still visible
+          const visibleWrapperHeight = Math.max(0, wrapperRect.bottom);
+          
+          // Add small margin to keep some content always visible at top
+          const minVisibleHeight = 10; // Always show at least 10px at top
+          const constrainedHeight = Math.min(originalHeight, Math.max(minVisibleHeight, visibleWrapperHeight));
+          
+          // Never let ad be taller than what's available
+          if (constrainedHeight > 0) {
+            adIframe.style.height = constrainedHeight + 'px';
+          } else {
+            adContainer.classList.add('hidden');
+          }
+        }
+
+        // Optimize scroll events for immediate updates
+        let ticking = false;
+        function requestTick() {
+          if (!ticking) {
+            requestAnimationFrame(updateAd);
+            ticking = true;
+            requestAnimationFrame(() => ticking = false); // Reset immediately after next frame
+          }
+        }
+
+        window.addEventListener('scroll', requestTick, { passive: true });
+        window.addEventListener('resize', updateAd);
+        updateAd(); // Initial call
+      }
     });
   </script>
 </head>
@@ -177,6 +270,12 @@
     <p>In eleifend, ipsum et lobortis dignissim, sem sem fringilla dolor, non volutpat magna felis non sem. Nullam nec odio sed nisi vehicula tempor. Pellentesque vel dignissim lorem.</p>
 
     <p>Proin placerat feugiat lacus, vitae ultricies risus mattis vel. Donec ultricies nisi eu sapien rhoncus, vitae posuere turpis tempor. Cras non fermentum justo.</p>
+
+    <p>Vestibulum facilisis ipsum nec magna cursus, at tempus nulla tincidunt. Sed varius, nulla nec cursus lacinia, ipsum nulla tempor magna, eget cursus nulla nulla nec magna.</p>
+
+    <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Donec auctor blandit quam, et cursus nulla cursus nec.</p>
+
+    <p>Aliquam cursus nulla nec magna tempus, at tempus nulla tincidunt. Sed varius, nulla nec cursus lacinia, ipsum nulla tempor magna, eget cursus nulla nulla nec magna.</p>
   </div>
 </body>
 </html>
