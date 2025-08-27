@@ -1,202 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <title>LuponMedia - Breaking News</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            padding: 0;
-            margin: 0;
-            background-color: #f8f9fa;
-        }
+  <meta charset="UTF-8" />
+  <title>LuponMedia - Breaking News</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      background-color: #f8f9fa;
+    }
 
-        header {
-            background-color: #ffcc00;
-            color: #000;
-            padding: 15px 20px;
-            font-size: 24px;
-            font-weight: bold;
-        }
+    header {
+      background-color: #ffcc00;
+      color: #000;
+      padding: 15px 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
 
-        .container {
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-        }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+    }
 
-        .hero-image {
-            width: 100%;
-            height: auto;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
+    .hero-image {
+      width: 100%;
+      height: auto;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
 
-        .author {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
+    .author {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
 
-        p {
-            margin-top: 0;
-            margin-bottom: 0;
-            position: relative;
-            z-index: 2000;
-            background: white;
-            padding: 0.5em 0;
-        }
+    #ad-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0;
+    }
 
-        p:has(+ #ad-wrapper) {
-            margin-bottom: 0;
-        }
+    #ad-container {
+      width: 300px;
+      height: 250px;
+    }
 
-        #ad-wrapper {
-            display: flex;
-            justify-content: center;
-            height: 450px;
-            position: relative;
-            margin: 0;
-            padding: 0;
-        }
+    iframe#ad-iframe {
+      width: 300px;
+      height: 250px;
+      border: none;
+    }
+  </style>
 
-        #ad-container {
-            width: 300px;
-            height: 250px;
-        }
+  <script>
+    var pbjs = {
+      adUnits: [],
+      bidResponses: {},
+      auctionsDone: false,
+      requestBids: function (config) {
+        console.log("[PBJS] Starting bid request for:", config.adUnits);
 
-        #ad-container.sticky {
-            position: fixed;
-            top: 0px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-        }
-
-        #ad-container.bottom {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        iframe#ad-iframe {
-            width: 300px;
-            height: 250px;
-            border: none;
-        }
-    </style>
-
-    <script>
-        var pbjs = {
-            adUnits: [],
-            bidResponses: {},
-            auctionsDone: false,
-            requestBids: function (config) {
-                console.log("[PBJS] Starting bid request for:", config.adUnits);
-
-                setTimeout(function () {
-                    pbjs.bidResponses[config.adUnits[0].code] = [
-                        {
-                            bidder: "mockBidderA",
-                            cpm: 1.2,
-                            ad: "<div style='background: blue; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;'>AD</div>",
-                            width: 300,
-                            height: 250,
-                            adId: "ad123"
-                        }
-                    ];
-                    pbjs.auctionsDone = true;
-                    console.log("[PBJS] Bids received:", pbjs.bidResponses);
-
-                    if (typeof config.bidsBackHandler === "function") {
-                        config.bidsBackHandler();
-                    }
-                }, 200);
-            },
-            renderAd: function (iframe, adId) {
-                var adUnitCode = 'div-gpt-ad-1';
-                var ad = pbjs.bidResponses[adUnitCode]?.[0];
-                if (ad) {
-                    var doc = iframe.contentWindow.document;
-                    doc.open();
-                    doc.write(ad.ad);
-                    doc.close();
-                }
+        setTimeout(function () {
+          pbjs.bidResponses[config.adUnits[0].code] = [
+            {
+              bidder: "mockBidderA",
+              cpm: 1.2,
+              ad: "<div style='background: blue; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;'>AD</div>",
+              width: 300,
+              height: 250,
+              adId: "ad123"
             }
-        };
+          ];
+          pbjs.auctionsDone = true;
+          console.log("[PBJS] Bids received:", pbjs.bidResponses);
 
-        pbjs.adUnits = [{
-            code: 'div-gpt-ad-1',
-            mediaTypes: {
-                banner: {
-                    sizes: [[300, 250]]
-                }
-            },
-            bids: [
-                { bidder: 'mockBidderA', params: {} },
-                { bidder: 'mockBidderB', params: {} }
-            ]
-        }];
+          if (typeof config.bidsBackHandler === "function") {
+            config.bidsBackHandler();
+          }
+        }, 200);
+      },
+      renderAd: function (iframe, adId) {
+        var adUnitCode = 'div-gpt-ad-1';
+        var ad = pbjs.bidResponses[adUnitCode]?.[0];
+        if (ad) {
+          var doc = iframe.contentWindow.document;
+          doc.open();
+          doc.write(ad.ad);
+          doc.close();
+        }
+      }
+    };
 
-        window.addEventListener('DOMContentLoaded', function () {
-            pbjs.requestBids({
-                adUnits: pbjs.adUnits,
-                bidsBackHandler: function () {
-                    console.log("[PBJS] Waiting 2 seconds before rendering ad...");
-                    setTimeout(function () {
-                        var iframe = document.createElement('iframe');
-                        iframe.id = 'ad-iframe';
-                        document.getElementById('ad-container').appendChild(iframe);
-                        pbjs.renderAd(iframe, 'ad123');
-                        setupStickyAdBehavior();
-                    }, 2000);
-                }
-            });
+    pbjs.adUnits = [{
+      code: 'div-gpt-ad-1',
+      mediaTypes: {
+        banner: {
+          sizes: [[300, 250]]
+        }
+      },
+      bids: [
+        { bidder: 'mockBidderA', params: {} },
+        { bidder: 'mockBidderB', params: {} }
+      ]
+    }];
 
-            function setupStickyAdBehavior() {
-                const adContainer = document.getElementById('ad-container');
-                const adWrapper = document.getElementById('ad-wrapper');
-
-                function updateAd() {
-                    const wrapperRect = adWrapper.getBoundingClientRect();
-                    const adHeight = adContainer.offsetHeight;
-                    const offsetTop = 0;
-
-                    if (wrapperRect.bottom <= 0 || wrapperRect.top >= window.innerHeight) {
-                        adContainer.classList.remove('sticky', 'bottom');
-                        adWrapper.style.marginBottom = '';
-                        adWrapper.style.paddingBottom = '';
-                        return;
-                    }
-
-                    if (wrapperRect.top <= offsetTop) {
-                        adContainer.classList.add('sticky');
-                        adContainer.classList.remove('bottom');
-                        adWrapper.style.marginBottom = `-${adHeight}px`;
-                        adWrapper.style.paddingBottom = `${adHeight}px`;
-                    } else {
-                        adContainer.classList.remove('sticky', 'bottom');
-                        adWrapper.style.marginBottom = '';
-                        adWrapper.style.paddingBottom = '';
-                    }
-                }
-
-                window.addEventListener('scroll', updateAd);
-                window.addEventListener('resize', updateAd);
-                updateAd();
-            }
-        });
-    </script>
+    window.addEventListener('DOMContentLoaded', function () {
+      pbjs.requestBids({
+        adUnits: pbjs.adUnits,
+        bidsBackHandler: function () {
+          console.log("[PBJS] Waiting 2 seconds before rendering ad...");
+          setTimeout(function () {
+            var iframe = document.createElement('iframe');
+            iframe.id = 'ad-iframe';
+            document.getElementById('ad-container').appendChild(iframe);
+            pbjs.renderAd(iframe, 'ad123');
+          }, 2000);
+        }
+      });
+    });
+  </script>
 </head>
 
 <body>
