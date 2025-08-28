@@ -91,23 +91,31 @@
           }
         }, 200);
       },
-      renderAd: function (iframe, adId) {
-        var adUnitCode = 'div-gpt-ad-1';
-        var ad = pbjs.bidResponses[adUnitCode]?.[0];
-        if (ad) {
-          var doc = iframe.contentWindow.document;
-          doc.open();
-          doc.write(`
-            <style>
-              html, body { 
-                overflow: hidden; /* Hide scrollbars inside ad iframe only */
-              }
-            </style>
-            ${ad.ad}
-          `);
-          doc.close();
-        }
+renderAd: function (iframe, adId) {
+  var adUnitCode = 'div-gpt-ad-1';
+  var ad = pbjs.bidResponses[adUnitCode]?.[0];
+  if (ad) {
+    var doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(ad.ad);
+    doc.close();
+
+    // Nakon što je iframe dokument zatvoren, ubacujemo naš style u <head>
+    iframe.onload = function () {
+      try {
+        var style = doc.createElement('style');
+        style.textContent = `
+          html, body {
+            overflow: hidden !important;
+          }
+        `;
+        doc.head.appendChild(style);
+      } catch (e) {
+        console.error("Failed to inject style into iframe:", e);
       }
+    };
+  }
+}
     };
 
     pbjs.adUnits = [{
