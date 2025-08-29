@@ -95,6 +95,10 @@
         var adUnitCode = 'div-gpt-ad-1';
         var ad = pbjs.bidResponses[adUnitCode]?.[0];
         if (ad) {
+          // Set iframe dimensions from ad response - THIS IS KEY!
+          iframe.style.setProperty('width', ad.width + 'px', 'important');
+          iframe.style.setProperty('height', ad.height + 'px', 'important');
+          
           var doc = iframe.contentWindow.document;
           doc.open();
           doc.write(ad.ad);
@@ -104,10 +108,11 @@
           style.textContent = `
             html, body {
               overflow: hidden !important;
-              margin: 0 !important;
+              margin: 0;
+              padding: 0;
             }
           `;
-          (doc.head || doc.documentElement).appendChild(style);
+          doc.head.appendChild(style);
         }
       }
     };
@@ -145,89 +150,87 @@
         const adWrapper = document.getElementById('ad-wrapper');
         const adIframe = document.getElementById('ad-iframe');
         
-        // Wait for iframe to load and get actual dimensions
-        setTimeout(function() {
-          const originalHeight = adIframe.offsetHeight || 250; // Fallback to 250px
-          const originalWidth = adIframe.offsetWidth || 300; // Fallback to 300px
-          const bufferSpace = 200; // Always keep 200px buffer
-          const wrapperHeight = originalHeight + bufferSpace;
+        // Get the actual height from the ad response, not the CSS
+        const adUnitCode = 'div-gpt-ad-1';
+        const ad = pbjs.bidResponses[adUnitCode]?.[0];
+        const originalHeight = ad ? ad.height : 250; // Fallback to 250 if no ad
+                
+        // Add styles dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+          #ad-wrapper {
+            height: ${originalHeight + 200}px !important;
+            position: relative !important;
+          }
           
-          // Add styles dynamically
-          const style = document.createElement('style');
-          style.textContent = `
-            #ad-wrapper {
-              height: ${wrapperHeight}px !important;
-              position: relative !important;
-            }
-            
-            #ad-container.sticky {
-              position: fixed !important;
-              top: 0px !important;
-              left: 50% !important;
-              transform: translateX(-50%) !important;
-              z-index: 1000 !important;
-            }
-            
-            #ad-iframe {
-              transition: height 0.1s ease-out;
-              overflow: hidden !important;
-            }
-            
-            #ad-container.hidden {
-              display: none !important;
-            }
-          `;
-          document.head.appendChild(style);
-
-          function updateAd() {
-            const wrapperRect = adWrapper.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            
-            // If wrapper is completely out of view, hide ad
-            if (wrapperRect.bottom <= 0 || wrapperRect.top >= viewportHeight) {
-              adContainer.classList.remove('sticky');
-              adContainer.classList.add('hidden');
-              return;
-            }
-            
-            // If wrapper top is visible, show normally
-            if (wrapperRect.top > 0) {
-              adContainer.classList.remove('sticky', 'hidden');
-              adIframe.style.height = originalHeight + 'px';
-              return;
-            }
-            
-            // Wrapper top is above viewport, make sticky
-            adContainer.classList.remove('hidden');
-            adContainer.classList.add('sticky');
-            
-            // Calculate visible wrapper height
-            const visibleWrapperHeight = Math.max(0, wrapperRect.bottom);
-            
-            // Just constrain to available space, no minimum
-            const constrainedHeight = Math.min(originalHeight, visibleWrapperHeight);
-            
-            if (constrainedHeight > 0) {
-              adIframe.style.height = constrainedHeight + 'px';
-            } else {
-              adContainer.classList.add('hidden');
-            }
+          #ad-container.sticky {
+            position: fixed !important;
+            top: 0px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 1000 !important;
           }
-
-          // Throttled scroll handler
-          let ticking = false;
-          function requestTick() {
-            if (!ticking) {
-              requestAnimationFrame(updateAd);
-              ticking = true;
-              setTimeout(() => ticking = false, 16); // ~60fps
-            }
+          
+          #ad-iframe {
+            transition: height 0.05s ease-out !important;
+            overflow: hidden !important;
           }
+          
+          #ad-container.hidden {
+            display: none !important;
+          }
+        `;
+        document.head.appendChild(style);
 
-          window.addEventListener('scroll', requestTick, { passive: true });
-          window.addEventListener('resize', updateAd);
-          updateAd();
-        }, 100); // Wait for iframe to be ready
+        function updateAd() {
+          const wrapperRect = adWrapper.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          
+          // If wrapper is completely out of view (above or below), hide ad
+          if (wrapperRect.bottom <= 0 || wrapperRect.top >= viewportHeight) {
+            adContainer.classList.remove('sticky');
+            adContainer.classList.add('hidden');
+            return;
+          }
+          
+          // If wrapper is fully visible and ad hasn't reached the top, show normally
+          if (wrapperRect.top > 0) {
+            adContainer.classList.remove('sticky', 'hidden');
+            adIframe.style.setProperty('height', originalHeight + 'px', 'important');
+            return;
+          }
+          
+          // Wrapper is partially visible (top is at or above viewport top)
+          adContainer.classList.remove('hidden');
+          adContainer.classList.add('sticky');
+          
+          // Calculate how much of the wrapper is still visible
+          const visibleWrapperHeight = Math.max(0, wrapperRect.bottom);
+          
+          // Add small margin to keep some content always visible at top
+          const minVisibleHeight = 10;
+          const constrainedHeight = Math.min(originalHeight, Math.max(minVisibleHeight, visibleWrapperHeight));
+          
+          // Never let ad be taller than what's available
+          if (constrainedHeight > 0) {
+            adIframe.style.setProperty('height', constrainedHeight + 'px', 'important');
+          } else {
+            adContainer.classList.add('hidden');
+          }
+        }
+
+        let ticking = false;
+        function requestTick() {
+          if (!ticking) {
+            requestAnimationFrame(updateAd);
+            ticking = true;
+            requestAnimationFrame(() => ticking = false);
+          }
+        }
+
+        window.addEventListener('scroll', requestTick, { passive: true });
+        window.addEventListener('resize', updateAd);
+        updateAd(); // Initial call
       }
     });
   </script>
@@ -246,7 +249,7 @@
       alt="News image"
     />
 
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nec justo arcu. Quisque sagittis, nisi vel facilisis viverra, sem arcu lobortis mauris, nec cursus lacus elit in ligula. Integer nec fermentum mauris. Curabitur scelerisque risus nec porta lobortis.</p>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nec justo arcu. Quisque sagittis, nisi vel facilibus viverra, sem arcu lobortis mauris, nec cursus lacus elit in ligula. Integer nec fermentum mauris. Curabitur scelerisque risus nec porta lobortis.</p>
 
     <p>Donec consequat purus sed sapien vulputate, sit amet finibus ex sagittis. Suspendisse potenti. Pellentesque lacinia vestibulum tellus, id fringilla urna varius ac. Phasellus eget velit facilisis, posuere eros at, feugiat sapien. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae.</p>
 
