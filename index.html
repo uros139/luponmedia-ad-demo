@@ -95,10 +95,6 @@
         var adUnitCode = 'div-gpt-ad-1';
         var ad = pbjs.bidResponses[adUnitCode]?.[0];
         if (ad) {
-          // Set iframe dimensions from ad response - THIS IS KEY!
-          iframe.style.setProperty('width', ad.width + 'px', 'important');
-          iframe.style.setProperty('height', ad.height + 'px', 'important');
-          
           var doc = iframe.contentWindow.document;
           doc.open();
           doc.write(ad.ad);
